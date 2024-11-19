@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyFitG - Fitness & Nutrition Coach</title>
+    <link rel="stylesheet" href="./assets/css/style2.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>MyFitG: Your Fitness & Nutrition Coach</h1>
+            <p>Ask me anything about fitness, gym routines, or nutrition plans.</p>
+            <p>Examples: "Give me a 2000 calorie diet" or "Workout for strength"</p>
+        </header>
+
+        <main>
+            <div class="chat-container">
+                <div id="chat-window" class="chat-window" aria-live="polite">
+                    <div id="chat-messages" class="chat-messages"></div>
+                </div>
+                <div class="chat-input">
+                    <input type="text" id="user-input" placeholder="Type 'Give me a workout plan' or 'Give me a 2000 calorie diet'" aria-label="Chat input" />
+                    <button id="send-btn" aria-label="Send message">Send</button>
+                </div>
+            </div>
+            <!-- Go Back to Index Button -->
+            <div class="back-button">
+                <button id="back-btn" aria-label="Go Back to Index">Go Back Home</button>
+            </div>
+        </main>
+
+        <footer>
+            <p>Powered by <strong>MyFitG</strong> - Your Partner in Fitness and Nutrition</p>
+        </footer>
+    </div>
+
+    <script>
+        const messagesContainer = document.getElementById('chat-messages');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const backBtn = document.getElementById('back-btn'); // Back Button Element
+
+        sendBtn.addEventListener('click', async () => {
+            const userMessage = userInput.value.trim();
+            if (!userMessage) return;
+
+            addMessage('user', userMessage);
+            userInput.value = '';
+
+            let apiEndpoint = '/chatbot';
+            let requestData = {};
+
+            // Process user input for specific requests
+            if (userMessage.toLowerCase().includes('diet')) {
+                apiEndpoint = '/predict/diet';
+
+                // Extract calorie amount from the user's message
+                const caloriesMatch = userMessage.match(/(\d+)/); // Look for numbers in the message
+                if (!caloriesMatch) {
+                    addMessage('bot', "Please specify how many calories you'd like your diet to include.");
+                    return;
+                }
+
+                const calories = parseInt(caloriesMatch[1], 10);
+                requestData = { calories };
+            } else if (userMessage.toLowerCase().includes('workout')) {
+                apiEndpoint = '/predict/workout';
+
+                // Assume a default goal for simplicity
+                const goal = userMessage.match(/(strength|cardio|endurance)/i)?.[0] || 'strength';
+                requestData = { goal: goal.toLowerCase() };
+            } else {
+                addMessage('bot', "I can help you with diet plans or workout routines. Please ask a specific question!");
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://127.0.0.1:5000${apiEndpoint}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestData),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                const reply = result.recommendation 
+                    ? formatRecommendation(result.recommendation, apiEndpoint.includes('workout')) 
+                    : "No recommendation available.";
+                addMessage('bot', reply, apiEndpoint.includes('workout') ? 'workout' : 'diet');
+            } catch (error) {
+                addMessage('bot', `Error: ${error.message}`);
+                console.error('Fetch Error:', error);
+            }
+        });
+
+        function addMessage(sender, message, type = '') {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender} ${type}`;
+            messageDiv.innerHTML = typeof message === 'object' ? JSON.stringify(message, null, 2) : message;
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function formatRecommendation(recommendation, isWorkout = false) {
+            if (Array.isArray(recommendation)) {
+                if (isWorkout) {
+                    return recommendation.map((exercise, index) => {
+                        return `${index + 1}. <strong>${exercise.exercise}</strong>: ${exercise.sets} sets x ${exercise.reps} reps`;
+                    }).join('<br>');
+                } else {
+                    return recommendation.map((meal) => {
+                        const items = meal.items.map(item => `${item.name} (${item.calories} calories)`).join(', ');
+                        return `<strong>${meal.meal}</strong>: ${meal.calories} calories<br>Items: ${items}`;
+                    }).join('<br><br>');
+                }
+            }
+            return recommendation;
+        }
+
+        // Go Back to Index Event Listener
+        backBtn.addEventListener('click', () => {
+            window.location.href = 'index.html'; // Navigate to index.html
+        });
+    </script>
+</body>
+</html>

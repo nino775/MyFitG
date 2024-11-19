@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get Started</title>
+    <link rel="stylesheet" href="./assets/css/style2.css">
+</head>
+<body>
+    <button class="back-home-button" onclick="location.href='index.html'">Back to Home</button>
+
+    <div class="get-started-container">
+        <h1>Get Started on Your Fitness Journey</h1>
+        <p>Select your goal and enter your details to receive a customized plan based on your weight.</p>
+
+        <!-- Goal Selection Section -->
+        <section class="goal-section">
+            <h2>What is your goal?</h2>
+            <button id="loseWeightBtn" class="goal-button" disabled>Lose Weight</button>
+            <button id="gainWeightBtn" class="goal-button" disabled>Gain Weight</button>
+        </section>
+
+        <!-- BMI and Information Form -->
+        <section class="bmi-section" id="bmiSection">
+            <h2>Enter Your Information</h2>
+            <form id="bmiForm">
+                <div class="form-group">
+                    <input type="number" id="height" name="height" required placeholder=" ">
+                    <label for="height">Height (cm)</label>
+                </div>
+
+                <div class="form-group">
+                    <input type="number" id="weight" name="weight" required placeholder=" ">
+                    <label for="weight">Weight (kg)</label>
+                </div>
+
+                <div class="form-group">
+                    <input type="number" id="age" name="age" required placeholder=" ">
+                    <label for="age">Age</label>
+                </div>
+
+                <button type="submit" class="submit-button">Submit</button>
+            </form>
+        </section>
+    </div>
+
+    <script>
+        // Select the BMI form
+        const bmiForm = document.getElementById("bmiForm");
+
+        // Handle form submission
+        bmiForm.addEventListener("submit", (event) => {
+            event.preventDefault(); // Prevent form submission from reloading the page
+
+            const weight = parseFloat(document.getElementById("weight").value);
+
+            // Redirect based on weight
+            if (weight >= 50 && weight <= 74) {
+                location.href = "gain-weight-tips.html"; // Redirect to gain weight page
+            } else if (weight >= 75 && weight <= 150) {
+                location.href = "lose-weight-tips.html"; // Redirect to lose weight page
+            } else {
+                alert("Please enter a valid weight between 50 and 150 kg."); // Handle invalid input
+            }
+        });
+    </script>
+</body>
+</html>
